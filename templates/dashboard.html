@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Campus Task Manager</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+
+<body>
+
+    <aside class="sidebar">
+        <h2>Campus<span>Task</span></h2>
+
+        <nav>
+            <a href="/" class="active">Dashboard</a>
+            <a href="#tasks">My Tasks</a>
+            <a href="#planner">Study Planner</a>
+            <a href="#statistics">Statistics</a>
+        </nav>
+
+        <div class="sidebar-footer">
+            Academic Productivity
+        </div>
+    </aside>
+
+    <main class="main-content">
+
+        <header class="topbar">
+            <div>
+                <p class="eyebrow">ACADEMIC WORKSPACE</p>
+                <h1>Dashboard</h1>
+                <p>Atur tugas kuliahmu dengan lebih terorganisasi.</p>
+            </div>
+
+            <div class="profile">
+                <div class="avatar">S</div>
+                <span>Student Workspace</span>
+            </div>
+        </header>
+
+        <section class="stats-grid" id="statistics">
+
+            <div class="stat-card">
+                <p>Total Tasks</p>
+                <h2>{{ total }}</h2>
+                <span>Seluruh tugas</span>
+            </div>
+
+            <div class="stat-card">
+                <p>To Do</p>
+                <h2>{{ pending }}</h2>
+                <span>Belum dikerjakan</span>
+            </div>
+
+            <div class="stat-card">
+                <p>In Progress</p>
+                <h2>{{ in_progress }}</h2>
+                <span>Sedang dikerjakan</span>
+            </div>
+
+            <div class="stat-card">
+                <p>Completed</p>
+                <h2>{{ completed }}</h2>
+                <span>Tugas selesai</span>
+            </div>
+
+        </section>
+
+        <section class="panel progress-panel">
+            <div class="section-heading">
+                <div>
+                    <p class="eyebrow">YOUR PERFORMANCE</p>
+                    <h2>Overall Progress</h2>
+                </div>
+
+                <strong>{{ progress }}%</strong>
+            </div>
+
+
+            <div class="progress-track">
+                <div class="progress-fill" style="width {{ progress }}%;"></div>
+            </div>
+
+
+            <p class="muted">
+                Persentase tugas yang telah diselesaikan.
+            </p>
+        </section>
+
+        <section class="content-grid">
+
+            <div class="panel" id="tasks">
+
+                <div class="section-heading">
+                    <div>
+                        <p class="eyebrow">TASK MANAGEMENT</p>
+                        <h2>My Tasks</h2>
+                    </div>
+
+                    <span class="badge">{{ total }} tasks</span>
+                </div>
+
+                <form action="/add" method="POST" class="task-form">
+
+                    <label for="title">Nama tugas</label>
+                    <input type="text" id="title" name="title" placeholder="Contoh: Laporan Basis Data" maxlength="150"
+                        required>
+
+                    <label for="subject">Mata kuliah</label>
+                    <input type="text" id="subject" name="subject" placeholder="Contoh: Basis Data" maxlength="100"
+                        required>
+
+                    <div class="form-row">
+
+                        <div>
+                            <label for="deadline">Deadline</label>
+                            <input type="date" id="deadline" name="deadline" required>
+                        </div>
+
+                        <div>
+                            <label for="duration">Durasi (jam)</label>
+                            <input type="number" id="duration" name="duration" min="0.5" max="720" step="0.5"
+                                placeholder="2" required>
+                        </div>
+
+                    </div>
+
+                    <label for="priority">Prioritas</label>
+
+                    <select id="priority" name="priority" required>
+                        <option value="High">High</option>
+                        <option value="Medium" selected>Medium</option>
+                        <option value="Low">Low</option>
+                    </select>
+
+                    <button type="submit" class="primary-button">
+                        + Tambahkan Tugas
+                    </button>
+
+                </form>
+
+                <div class="task-list">
+
+                    {% for task in tasks %}
+
+                    <article class="task-item">
+
+                        <div class="task-info">
+                            <h3>{{ task.title }}</h3>
+
+                            <p>{{ task.subject }}</p>
+
+                            <div class="task-meta">
+                                <span class="priority {{ task.priority|lower }}">
+                                    {{ task.priority }}
+                                </span>
+
+                                <span>
+                                    Deadline: {{ task.deadline }}
+                                </span>
+
+                                <span>
+                                    {{ task.duration }} jam
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="task-actions">
+
+                            <form action="/update/{{ task.id }}" method="POST">
+                                <select name="status" aria-label="Status {{ task.title }}"
+                                    onchange="this.form.submit()">
+                                    <option value="To Do" {% if task.status=='To Do' %} selected {% endif %}>
+                                        To Do
+                                    </option>
+
+                                    <option value="In Progress" {% if task.status=='In Progress' %} selected {% endif
+                                        %}>
+                                        In Progress
+                                    </option>
+
+                                    <option value="Completed" {% if task.status=='Completed' %} selected {% endif %}>
+                                        Completed
+                                    </option>
+                                </select>
+                            </form>
+
+                            <form action="/delete/{{ task.id }}" method="POST"
+                                onsubmit="return confirm('Hapus tugas ini?')">
+                                <button type="submit" class="delete-button">
+                                    Hapus
+                                </button>
+                            </form>
+
+                        </div>
+
+                    </article>
+
+                    {% else %}
+
+                    <div class="empty-state">
+                        <h3>Belum ada tugas</h3>
+                        <p>Tambahkan tugas pertamamu melalui formulir di atas.</p>
+                    </div>
+
+                    {% endfor %}
+
+                </div>
+
+            </div>
+
+            <div class="panel planner-panel" id="planner">
+
+                <p class="eyebrow">SMART STUDY PLANNER</p>
+                <h2>Study Overview</h2>
+
+                <p class="muted">
+                    Ringkasan awal untuk membantu kamu merencanakan
+                    waktu belajar.
+                </p>
+
+                <div class="planner-item">
+                    <span>Total estimasi pengerjaan</span>
+                    <strong>
+                        {{ "%.1f"|format(
+                        tasks|sum(attribute='duration')
+                        ) }} jam
+                    </strong>
+                </div>
+
+                <div class="planner-item">
+                    <span>Tugas belum selesai</span>
+                    <strong>{{ total - completed }}</strong>
+                </div>
+
+                <div class="planner-note">
+                    <strong>Next step</strong>
+                    <p>
+                        Pada tahap berikutnya, kita akan membuat algoritma
+                        rekomendasi prioritas dan pembagian waktu belajar.
+                    </p>
+                </div>
+
+            </div>
+
+        </section>
+
+        <footer>
+            Campus Task Manager &copy; 2026
+        </footer>
+
+    </main>
+
+</body>
+
+</html>
